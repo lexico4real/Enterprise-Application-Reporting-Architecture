@@ -1,0 +1,84 @@
+services:
+  report-backend:
+    build:
+      context: .
+      target: development  # Switch to "production" for deployment
+    container_name: report-backend
+    ports:
+      - '8080:8080'
+    depends_on:
+      report-db:
+        condition: service_healthy
+      report-cache-house:
+        condition: service_healthy
+      report-mongodb:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - report-network
+    restart: unless-stopped
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    # For production, remove volumes and use:
+    # command: ["dumb-init", "node", "dist/main.js"]
+
+  report-db:
+    image: postgres:15-alpine
+    container_name: report-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - report-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: ["postgres", "-c", "listen_addresses=*"]
+
+  report-cache-house:
+    image: redis:7-alpine
+    container_name: report-redis
+    restart: unless-stopped
+    networks:
+      - report-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  report-mongodb:
+    image: mongo:7.0
+    container_name: report-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - report-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_USER}", "--password", "${MONGO_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  report-network:
+    driver: bridge
+
+volumes:
+  db-data: {}
+  mongo-data: {}
