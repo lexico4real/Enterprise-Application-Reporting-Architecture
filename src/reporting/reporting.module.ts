@@ -11,6 +11,7 @@ import { SortingBuilder } from './builders/sorting.builder';
 import { PaginationBuilder } from './builders/pagination.builder';
 import { ReportSqlBuilder } from './builders/report-sql.builder';
 import { ReportRequestValidator } from './validators/validator';
+import { ReportQueryRepository } from './repositories/report-query.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
@@ -25,6 +26,7 @@ import { ReportRequestValidator } from './validators/validator';
     PaginationBuilder,
     ReportSqlBuilder,
     ReportRequestValidator,
+    ReportQueryRepository,
   ],
   exports: [ReportDefinitionRepository],
 })
