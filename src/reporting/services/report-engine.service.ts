@@ -108,19 +108,12 @@ export class ReportEngineService {
        */
       const result: ReportResultDto = {
         reportName,
-
         currentPage: page,
-
         itemsPerPage: pageSize,
-
         totalItems,
-
         totalPages,
-
         filters: request.filters ?? {},
-
         generatedAt: new Date(),
-
         data,
       };
 

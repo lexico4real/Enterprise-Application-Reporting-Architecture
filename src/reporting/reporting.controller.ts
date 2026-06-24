@@ -1,45 +1,36 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { ReportingService } from './services/reporting.service';
-import { CreateReportingDto } from './dto/create-reporting.dto';
-import { UpdateReportingDto } from './dto/update-reporting.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ReportRequestDto } from './dto/report-request.dto';
+import { ReportResultDto } from './dto/report-result.dto';
+import { ReportExportDto } from './dto/report-export.dto';
 
 @Controller('reporting')
 export class ReportingController {
-  constructor(private readonly reportingService: ReportingService) {}
+  constructor(
+    private readonly reportingService: ReportingService,
+    private readonly reportExportService: ReportExportService,
+  ) {}
 
-  @Post()
-  create(@Body() createReportingDto: CreateReportingDto) {
-    return this.reportingService.create(createReportingDto);
+  @Post(':domain/:reportName')
+  @ApiOperation({ summary: 'Generate report' })
+  @ApiResponse({ status: 200, description: 'Report generated successfully' })
+  async generateReport(
+    @Param('domain') domain: string,
+    @Param('reportName') reportName: string,
+    @Body() request: ReportRequestDto,
+  ): Promise<ReportResultDto> {
+    return this.reportingService.generateReport(domain, reportName, request);
   }
 
-  @Get()
-  findAll() {
-    return this.reportingService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reportingService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateReportingDto: UpdateReportingDto,
-  ) {
-    return this.reportingService.update(+id, updateReportingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reportingService.remove(+id);
+  @Post(':domain/:reportName/export')
+  @ApiOperation({ summary: 'Export report' })
+  @ApiResponse({ status: 200, description: 'Report exported successfully' })
+  exportReport(
+    @Param('domain') domain: string,
+    @Param('reportName') reportName: string,
+    @Body() request: ReportExportDto,
+  ): Promise<Buffer | string> {
+    return this.reportExportService.export(domain, reportName, request);
   }
 }
