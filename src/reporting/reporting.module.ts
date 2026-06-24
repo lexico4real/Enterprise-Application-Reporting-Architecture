@@ -10,6 +10,7 @@ import { SearchBuilder } from './builders/search.builder';
 import { SortingBuilder } from './builders/sorting.builder';
 import { PaginationBuilder } from './builders/pagination.builder';
 import { ReportSqlBuilder } from './builders/report-sql.builder';
+import { ReportRequestValidator } from './validators/validator';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
@@ -23,6 +24,7 @@ import { ReportSqlBuilder } from './builders/report-sql.builder';
     SortingBuilder,
     PaginationBuilder,
     ReportSqlBuilder,
+    ReportRequestValidator,
   ],
   exports: [ReportDefinitionRepository],
 })
