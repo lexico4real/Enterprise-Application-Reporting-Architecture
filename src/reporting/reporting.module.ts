@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ReportingService } from './reporting.service';
+import { ReportingService } from './services/reporting.service';
 import { ReportingController } from './reporting.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReportDefinitionEntity } from './entities/report-definition.entity';
@@ -14,6 +14,7 @@ import { ReportRequestValidator } from './validators/validator';
 import { ReportQueryRepository } from './repositories/report-query.repository';
 import { ReportRegistry } from './registry/report.registry';
 import { ReportEngineService } from './services/report-engine.service';
+import { ReportAuditService } from './services/report-audit.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
@@ -31,6 +32,7 @@ import { ReportEngineService } from './services/report-engine.service';
     ReportQueryRepository,
     ReportRegistry,
     ReportEngineService,
+    ReportAuditService,
   ],
   exports: [ReportDefinitionRepository],
 })
