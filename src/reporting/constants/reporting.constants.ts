@@ -14,6 +14,8 @@ export const REPORTING_CONSTANTS = {
   DEFAULT_CACHE_TTL: 300, // 5 minutes
 
   METADATA_CACHE_TTL: 3600, // 1 hour
+
+  REPORT_CACHE_TTL: 300,
 } as const;
 
 export const REPORT_CACHE_KEYS = {
