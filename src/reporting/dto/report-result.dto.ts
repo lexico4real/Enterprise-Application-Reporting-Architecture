@@ -1,4 +1,4 @@
-import { IsInt, IsObject, IsString } from 'class-validator';
+import { IsDate, IsInt, IsObject, IsString } from 'class-validator';
 
 export class ReportResultDto {
   @IsString()
