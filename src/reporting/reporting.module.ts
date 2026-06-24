@@ -6,6 +6,7 @@ import { ReportDefinitionEntity } from './entities/report-definition.entity';
 import { CacheService } from 'src/cache/cache.service';
 import { ReportDefinitionRepository } from './repositories/report-definition.repository';
 import { FilterBuilder } from './builders/filter.builder';
+import { SearchBuilder } from './builders/search.builder';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
@@ -15,6 +16,7 @@ import { FilterBuilder } from './builders/filter.builder';
     ReportingService,
     CacheService,
     FilterBuilder,
+    SearchBuilder,
   ],
   exports: [ReportDefinitionRepository],
 })
