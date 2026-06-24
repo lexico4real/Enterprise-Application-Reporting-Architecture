@@ -8,6 +8,7 @@ import { ReportDefinitionRepository } from './repositories/report-definition.rep
 import { FilterBuilder } from './builders/filter.builder';
 import { SearchBuilder } from './builders/search.builder';
 import { SortingBuilder } from './builders/sorting.builder';
+import { PaginationBuilder } from './builders/pagination.builder';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
@@ -19,6 +20,7 @@ import { SortingBuilder } from './builders/sorting.builder';
     FilterBuilder,
     SearchBuilder,
     SortingBuilder,
+    PaginationBuilder,
   ],
   exports: [ReportDefinitionRepository],
 })
