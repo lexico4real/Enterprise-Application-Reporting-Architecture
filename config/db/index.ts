@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { BaseEntitySubscriber } from 'src/subscribers/base-entity.subscriber';
 
 export const getTypeOrmConfig = (
   configService: ConfigService,
@@ -17,7 +16,7 @@ export const getTypeOrmConfig = (
     logger: 'file',
     migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
     autoLoadEntities: true,
-    subscribers: [BaseEntitySubscriber],
+    subscribers: [],
     extra: {
       connectionLimit: 20,
       insecureAuth: true,

@@ -15,9 +15,12 @@ import { ReportQueryRepository } from './repositories/report-query.repository';
 import { ReportRegistry } from './registry/report.registry';
 import { ReportEngineService } from './services/report-engine.service';
 import { ReportAuditService } from './services/report-audit.service';
+import { RedisModule } from 'src/redis/redis.module';
+import { ReportSecurityValidator } from './validators/report-security.validator';
+import { CacheKeyGenerator } from './cache/cache-key.generator';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ReportDefinitionEntity])],
+  imports: [TypeOrmModule.forFeature([ReportDefinitionEntity]), RedisModule],
   controllers: [ReportingController],
   providers: [
     ReportDefinitionRepository,
@@ -33,6 +36,8 @@ import { ReportAuditService } from './services/report-audit.service';
     ReportRegistry,
     ReportEngineService,
     ReportAuditService,
+    ReportSecurityValidator,
+    CacheKeyGenerator,
   ],
   exports: [ReportDefinitionRepository],
 })
