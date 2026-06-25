@@ -1,98 +1,314 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Reporting Engine
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project implements a **metadata-driven reporting engine** that dynamically generates SQL queries at runtime. Instead of hardcoding report queries in application code, report definitions are stored in the database and interpreted by the application to produce flexible, filterable, searchable, sortable, and pageable reports.
 
-## Description
+This design allows new reports to be added or modified **without changing application code**, simply by updating report metadata.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Architecture
 
-```bash
-$ npm install
+The reporting engine follows a **dynamic SQL builder architecture** powered by database metadata.
+
+```
+Client Request
+     ↓
+ReportController
+     ↓
+ReportService
+     ↓
+ReportEngine
+     ↓
+ReportRegistry
+     ↓
+ReportProvider
+     ↓
+ReportDefinition (Database Metadata)
+     ↓
+ReportSqlBuilder
+     ↓
+ReportingRepository
+     ↓
+Database
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## Key Components
 
-# watch mode
-$ npm run start:dev
+### ReportController
 
-# production mode
-$ npm run start:prod
+Handles incoming HTTP requests and forwards them to the reporting service.
+
+Example endpoint:
+
+```
+POST /backend/fma/reports/{domain}/{reportName}
 ```
 
-## Run tests
+Example request payload:
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```json
+{
+  "filters": {
+    "region": "PHC",
+    "statuses": ["IN_PROGRESS"]
+  },
+  "page": 1,
+  "pageSize": 10,
+  "sortBy": "region",
+  "sortDirection": "DESC"
+}
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### ReportRegistry
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The registry manages all available `ReportProvider` implementations and retrieves report definitions based on the requested **domain** and **report name**.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+domain → provider → report definition
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Example:
 
-## Resources
+```
+fleet → FleetReportProvider → vehicle_request_running
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### ReportProvider
 
-## Support
+Each domain implements a provider that supplies report definitions.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Example:
 
-## Stay in touch
+```
+FleetReportProvider
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Responsibilities:
 
-## License
+* Define available reports for a domain
+* Provide metadata used to build SQL queries
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+### ReportDefinition
+
+Report definitions are stored in the database table:
+
+```
+fma_report_definitions
+```
+
+Example structure:
+
+| Column             | Description                                         |
+| ------------------ | --------------------------------------------------- |
+| report_name        | Name of the report                                  |
+| domain             | Report domain                                       |
+| base_query         | Base SQL query                                      |
+| filter_mappings    | JSON mapping of request filters to database columns |
+| sortable_columns   | Allowed columns for sorting                         |
+| searchable_columns | Columns used for search                             |
+| group_by_clause    | Optional grouping                                   |
+| date_column        | Column used for date filtering                      |
+
+Example base query:
+
+```sql
+SELECT
+    vr.request_id,
+    vr.added_by_email,
+    v.region,
+    vr.status
+FROM trip_requests vr
+LEFT JOIN fma_app_vehicle_boat v
+    ON vr.allocated_vehicle_id = v.id
+```
+
+Example filter mapping:
+
+```json
+{
+  "region": "v.region",
+  "driver": "vr.allocated_driver_id",
+  "vehicle": "v.registration_no",
+  "statuses": "vr.status"
+}
+```
+
+---
+
+## ReportSqlBuilder
+
+`ReportSqlBuilder` dynamically constructs SQL queries based on:
+
+* Base query
+* Filters
+* Search
+* Sorting
+* Pagination
+* Grouping
+
+Example generated SQL:
+
+```sql
+SELECT ...
+FROM trip_requests vr
+LEFT JOIN ...
+WHERE 1=1
+AND v.region = :region
+AND vr.status IN (:statuses)
+ORDER BY v.region DESC
+LIMIT :limit OFFSET :offset
+```
+
+---
+
+## Filtering
+
+Filters are automatically mapped using the `filter_mappings` JSON configuration.
+
+Example request:
+
+```json
+{
+  "filters": {
+    "region": "PHC",
+    "statuses": ["IN_PROGRESS"]
+  }
+}
+```
+
+Generated SQL:
+
+```sql
+AND v.region = 'PHC'
+AND vr.status IN ('IN_PROGRESS')
+```
+
+---
+
+## Sorting
+
+Sorting is restricted to columns defined in `sortable_columns` to prevent SQL injection.
+
+Example request:
+
+```
+sortBy = region
+sortDirection = DESC
+```
+
+Generated SQL:
+
+```
+ORDER BY v.region DESC
+```
+
+---
+
+## Pagination
+
+Pagination is automatically applied.
+
+Example request:
+
+```
+page = 1
+pageSize = 10
+```
+
+Generated SQL:
+
+```
+LIMIT 10 OFFSET 0
+```
+
+---
+
+## Search
+
+Search allows partial matching across configured columns.
+
+Example request:
+
+```
+search = Lagos
+```
+
+Generated SQL:
+
+```sql
+AND (
+    v.region LIKE '%Lagos%'
+    OR vr.added_by_email LIKE '%Lagos%'
+)
+```
+
+---
+
+## Aggregated Reports
+
+Some reports rely on **pre-aggregated tables** for performance optimization.
+
+Example table:
+
+```
+vehicle_daily_utilization
+```
+
+A scheduled job periodically populates this table to avoid heavy calculations during report execution.
+
+---
+
+## Scheduled Aggregations
+
+Example job:
+
+```
+FleetAggregationService.refreshVehicleUtilization()
+```
+
+This scheduled job computes metrics such as:
+
+* Total trips per vehicle
+* Total hours used
+* Daily vehicle utilization
+
+This significantly improves reporting performance.
+
+---
+
+## Example Reports
+
+Fleet domain reports include:
+
+```
+vehicle_request_closed
+vehicle_request_running
+vehicle_request_running_overdue
+vehicle_request_all
+vehicle_request_pending_assignment
+vehicle_request_turnaround_time
+vehicle_utilization
+driver_utilization
+drivers_list
+driver_license_renewal
+vehicle_list_by_region
+vehicles_by_department
+bus_manifest
+boat_manifest
+fuel_records
+incident_accident_report
+```
+
+## Summary
+
+The reporting engine uses a **metadata-driven dynamic SQL builder** to generate flexible reports at runtime. By storing report definitions in the database and interpreting them through a generic query builder, the system enables scalable and maintainable reporting without requiring code changes for each new report.
